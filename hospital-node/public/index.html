@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hospital Simulation</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      #status {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hospital Simulation Status</h1>
+    <div id="status">
+      <p>Waiting for simulation data...</p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+      var socket = io.connect(
+        "http://" + document.domain + ":" + location.port
+      );
+
+      socket.on("status_update", function (data) {
+        var statusDiv = document.getElementById("status");
+        var newStatus = document.createElement("p");
+        newStatus.textContent = `Patient ${data.patient} is ${data.status} at ${data.time} minutes.`;
+        statusDiv.appendChild(newStatus);
+      });
+    </script>
+  </body>
+</html>
