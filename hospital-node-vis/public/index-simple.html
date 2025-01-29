@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hospital Simulation</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+      }
+      .hospital {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      .patient {
+        padding: 10px;
+        border-radius: 5px;
+        width: 100px;
+        text-align: center;
+        transition: 0.5s;
+      }
+      .entered {
+        background-color: lightblue;
+      }
+      .being_handled {
+        background-color: orange;
+      }
+      .handled {
+        background-color: lightgreen;
+      }
+      .left {
+        background-color: gray;
+        opacity: 0.5;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🏥 Hospital Simulation</h1>
+    <div id="hospital" class="hospital"></div>
+
+    <script>
+      const socket = io();
+      socket.on("status_update", (data) => {
+        let hospitalDiv = document.getElementById("hospital");
+        let patientDiv = document.getElementById("patient-" + data.patient);
+
+        if (!patientDiv) {
+          patientDiv = document.createElement("div");
+          patientDivStatus = document.createElement("p");
+          patientDivStatus.innerText = data.status;
+          patientDiv.appendChild(patientDivStatus);
+          patientDiv.id = "patient-" + data.patient;
+          patientDiv.classList.add("patient");
+          patientDiv.innerText = "Patient " + data.patient;
+          hospitalDiv.appendChild(patientDiv);
+        }
+
+        patientDiv.className = "patient " + data.status;
+      });
+    </script>
+  </body>
+</html>

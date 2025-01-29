@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hospital Simulation</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+      }
+      svg {
+        width: 80vw;
+        height: 300px;
+        border: 1px solid #ccc;
+      }
+      .zone {
+        fill: lightgray;
+        stroke: black;
+        stroke-width: 2px;
+      }
+      .waiting {
+        fill: lightblue;
+      }
+      .treating {
+        fill: orange;
+      }
+      .discharged {
+        fill: lightgreen;
+        transition: opacity 1s ease-in-out;
+      }
+      .fading {
+        opacity: 0.3;
+      }
+      .patient {
+        transition: transform 1s ease-in-out;
+      }
+      .controls {
+        margin: 20px;
+      }
+      button {
+        padding: 10px;
+        margin: 5px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🏥 Live Hospital Simulation</h1>
+
+    <div class="controls">
+      <button onclick="startSimulation()">▶ Start</button>
+      <button onclick="stopSimulation()">⏸ Stop</button>
+      <button onclick="restartSimulation()">🔄 Restart</button>
+    </div>
+
+    <svg id="hospital">
+      <!-- Hospital layout -->
+      <rect x="10" y="50" width="150" height="200" class="zone waiting"></rect>
+      <rect
+        x="180"
+        y="50"
+        width="150"
+        height="200"
+        class="zone treating"
+      ></rect>
+      <rect
+        x="350"
+        y="50"
+        width="150"
+        height="200"
+        class="zone discharged"
+      ></rect>
+
+      <!-- Labels -->
+      <text x="30" y="40" font-size="16">Waiting Area</text>
+      <text x="210" y="40" font-size="16">Treatment Room</text>
+      <text x="370" y="40" font-size="16">Discharge</text>
+    </svg>
+
+    <script>
+      const socket = io();
+      const hospitalSvg = document.getElementById("hospital");
+
+      const zones = {
+        entered: { x: 30, y: 80 }, // Waiting area
+        being_handled: { x: 200, y: 80 }, // Treatment room
+        handled: { x: 370, y: 80 }, // Discharge area
+      };
+
+      function startSimulation() {
+        socket.emit("control", { action: "start" });
+      }
+
+      function stopSimulation() {
+        socket.emit("control", { action: "stop" });
+      }
+
+      function restartSimulation() {
+        socket.emit("control", { action: "restart" });
+        hospitalSvg.innerHTML = ""; // Clear SVG
+      }
+
+      socket.on("hospitalUpdate", (data) => {
+        let patient = document.getElementById("patient-" + data.patient);
+
+        if (!patient) {
+          patient = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "circle"
+          );
+          patient.setAttribute("id", "patient-" + data.patient);
+          patient.setAttribute("r", "15");
+          patient.setAttribute("fill", "black");
+          patient.setAttribute("class", "patient");
+          hospitalSvg.appendChild(patient);
+        }
+
+        const { x, y } = zones[data.status];
+        patient.setAttribute("transform", `translate(${x}, ${y})`);
+
+        if (data.status === "handled") {
+          setTimeout(() => patient.classList.add("fading"), 2000);
+          setTimeout(() => hospitalSvg.removeChild(patient), 4000);
+        }
+      });
+    </script>
+  </body>
+</html>
