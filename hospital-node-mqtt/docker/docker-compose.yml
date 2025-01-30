@@ -1,0 +1,23 @@
+services:
+  hivemq:
+    image: hivemq/hivemq-ce:latest
+    container_name: hivemq
+    ports:
+      - "1883:1883"
+      - "8000:8000"
+      - "9399:9399" # requires hivemq-prometheus extension - https://www.hivemq.com/blog/monitoring-hivemq-prometheus/
+    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
